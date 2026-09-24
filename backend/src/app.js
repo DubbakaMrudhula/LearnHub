@@ -27,8 +27,14 @@ app.use(
 );
 
 // CORS configuration
+const clientUrls = (env.CLIENT_URL || '')
+  .split(',')
+  .map((url) => url.trim().replace(/\/+$/, ''))
+  .filter(Boolean);
+
 const allowedOrigins = [
-  env.CLIENT_URL,
+  ...clientUrls,
+  'https://learn-hub-xi-coral.vercel.app',
   'http://localhost:5173',
   'http://127.0.0.1:5173',
   'http://localhost:5174',
@@ -40,7 +46,13 @@ app.use(
   cors({
     origin: (origin, callback) => {
       // Allow requests with no origin (like mobile apps, curl, postman)
-      if (!origin || allowedOrigins.includes(origin)) {
+      if (!origin) return callback(null, true);
+
+      const normalizedOrigin = origin.replace(/\/+$/, '');
+      if (
+        allowedOrigins.includes(normalizedOrigin) ||
+        normalizedOrigin.endsWith('.vercel.app')
+      ) {
         callback(null, true);
       } else {
         callback(new Error(`CORS policy does not allow access from origin: ${origin}`));
@@ -51,6 +63,7 @@ app.use(
     allowedHeaders: ['Content-Type', 'Authorization']
   })
 );
+app.options('*', cors());
 
 // HTTP request logging
 if (env.NODE_ENV === 'development') {
