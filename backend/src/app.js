@@ -16,6 +16,9 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 
+// Trust reverse proxy (e.g. Render, AWS, Heroku) for accurate client IP in express-rate-limit
+app.set('trust proxy', 1);
+
 // Security HTTP headers
 app.use(
   helmet({
